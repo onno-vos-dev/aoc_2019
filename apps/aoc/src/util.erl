@@ -1,7 +1,11 @@
 -module(util).
 
--export([ time_avg/2
+-export([ read_file/1
+        , time_avg/2
         ]).
+
+read_file(File) ->
+  file:read_file(code:priv_dir(aoc) ++ "/inputs/" ++ File).
 
 time_avg(Fun, X) ->
   AvgTimeMicro = lists:sum(
