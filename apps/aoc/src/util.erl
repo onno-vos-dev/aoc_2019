@@ -1,11 +1,13 @@
 -module(util).
 
--export([ read_file/1
+-export([ read_file/3
         , time_avg/2
         ]).
 
-read_file(File) ->
-  file:read_file(code:priv_dir(aoc) ++ "/inputs/" ++ File).
+read_file(File, Split, CastFun) ->
+  {ok, Bin0} = file:read_file(code:priv_dir(aoc) ++ "/inputs/" ++ File),
+  Bin = binary:replace(Bin0, <<"\n">>, <<>>),
+  [ CastFun(S) || S <- binary:split(Bin, Split, [trim, global]) ].
 
 time_avg(Fun, X) ->
   AvgTimeMicro = lists:sum(
