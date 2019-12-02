@@ -15,7 +15,7 @@ time_avg(Fun, X) ->
                                  {Avg, _} = timer:tc(fun() -> Fun() end),
                                  Avg
                              end, lists:seq(1, X))) / X,
-  io:format("=== Time: ~.5f ms ~n~n", [AvgTimeMicro / 1000]).
+  io:format("=== Time: ~p us ~.5f ms ~n~n", [AvgTimeMicro, AvgTimeMicro / 1000]).
 
 %%%_* Emacs ====================================================================
 %%% Local Variables:

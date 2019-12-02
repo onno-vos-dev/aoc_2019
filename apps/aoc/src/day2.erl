@@ -1,70 +1,65 @@
 -module(day2).
 
--export([ part1/1
-        , part2/1
-        , input/0
-        , test_input/0
-        , tagged_input/1
-        , op/2
+-export([ part1/0
+        , part1/1
+        , part2/0
         ]).
 
+part1() ->
+  part1(input()).
+
 part1(Input0) ->
-  Input1 = lists:keyreplace(1, 1, Input0, {1,12}),
-  Input = lists:keyreplace(2, 1, Input1, {2,2}),
-  {_, Res} = lists:unzip(do_part1(Input, {4, Input})),
-  hd(Res).
+  Input = reset_memory(Input0, 12, 2),
+  Res = process_ops(Input, 0),
+  {Res, Res =:= 8017076}.
 
-do_part1(L, {_, Acc}) when length(L) < 4 -> Acc;
-do_part1([A,B,C,D|_], {Ops, Acc}) ->
-  NewAcc = op([A,B,C,D], Acc),
-  T = lists:dropwhile(fun({X, _}) ->
-                          X < Ops
-                      end, NewAcc),
-  %% io:format("Ops: ~p~n NewAcc: ~p~n ABCD: ~p~n T: ~p~n~n", [Ops, NewAcc, {A,B,C,D}, T]),
-  do_part1(T, {Ops + 4, NewAcc}).
+part2() ->
+  L = lists:seq(1,100),
+  Resets = [{A,B} || A <- L, B <- L],
+  Res = do_part2(input(), Resets),
+  {Res, Res =:= 3146}.
 
-part2(Input) ->
-  do_part2(Input).
-
-do_part2(Input) ->
+do_part2(Input0, [{Noun, Verb}|T]) ->
   try
-    Res = do_do_part2(Input, rand:uniform(100), rand:uniform(100)),
-    case Res of
-      {19690720, Noun, Verb} -> {{Noun, Verb}, 100 * Noun + Verb};
-      _ -> do_part2(Input)
+    Input = reset_memory(Input0, Noun, Verb),
+    case process_ops(Input, 0) of
+      19690720 -> 100 * Noun + Verb;
+      _ ->
+        do_part2(Input0, T)
     end
-  catch
-    _:_:_ ->
-      do_part2(Input)
+  catch _:_:_ ->
+      do_part2(Input0, T)
   end.
 
-do_do_part2(Input0, Noun, Verb) ->
-  Input1 = lists:keyreplace(1, 1, Input0, {1, Noun}),
-  Input = lists:keyreplace(2, 1, Input1, {2, Verb}),
-  {_, Res} = lists:unzip(do_part1(Input, {4, Input})),
-  {hd(Res), Noun, Verb}.
+%%%_* Internal =================================================================
+reset_memory(Input0, Noun, Verb) ->
+  Input1 = maps:put(1, Noun, Input0),
+  maps:put(2, Verb, Input1).
 
-op([{_,1}, {_,Pos1}, {_,Pos2}, {_,StorePos}], List) ->
-  %% io:format("P1: ~p P1: ~p P3: ~p~n~n", [P1, P2, P3]),
-  {_, A} = lists:keyfind(Pos1, 1, List),
-  {_, B} = lists:keyfind(Pos2, 1, List),
-  lists:keyreplace(StorePos, 1, List, {StorePos, A+B});
-op([{_,2}, {_,Pos1}, {_,Pos2}, {_,StorePos}], List) ->
-  %% io:format("P1: ~p P1: ~p P3: ~p~n~n", [P1, P2, P3]),
-  {_, A} = lists:keyfind(Pos1, 1, List),
-  {_, B} = lists:keyfind(Pos2, 1, List),
-  lists:keyreplace(StorePos, 1, List, {StorePos, A*B});
-op([{_,99}, _, _, _], List) -> List.
+process_ops(Acc, Ops) ->
+  case maps:get(Ops, Acc) of
+    99 -> maps:get(0, Acc);
+    Op ->
+      PosA = maps:get(Ops + 1, Acc),
+      PosB = maps:get(Ops + 2, Acc),
+      PosC = maps:get(Ops + 3, Acc),
+      process_ops(do_op(Op, PosA, PosB, PosC, Acc), Ops + 4)
+  end.
 
+do_op(1, IntA, IntB, Pos, Map) ->
+  maps:put(Pos, maps:get(IntA, Map) + maps:get(IntB, Map), Map);
+do_op(2, IntA, IntB, Pos, Map) ->
+  maps:put(Pos, maps:get(IntA, Map) * maps:get(IntB, Map), Map);
+do_op(99, _IntA, _IntB, _Pos, Map) -> Map.
 
+%%%_* Input ====================================================================
 input() ->
-  util:read_file("day2.txt", <<",">>, fun(X) -> binary_to_integer(X) end).
+  maps:from_list(
+    tagged_input(
+      util:read_file("day2.txt", <<",">>, fun(X) -> binary_to_integer(X) end))).
 
 tagged_input(Input) ->
   lists:zip(lists:seq(0, length(Input) - 1), Input).
-
-test_input() ->
-  [1,9,10,3,2,3,11,0,99,30,40,50].
 
 %%%_* Emacs ====================================================================
 %%% Local Variables:
