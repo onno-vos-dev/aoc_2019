@@ -1,6 +1,6 @@
 -module(day3).
 
--compile([export_all]).
+-export([run/0]).
 
 run() ->
   run(input()).
@@ -52,7 +52,12 @@ update_acc(StepF, Int, Name, Acc) ->
 
 update({Steps, X, Y}, Name, Acc) ->
   maps:update_with({X, Y},
-                   fun(V) -> case V of [{_, Name}] -> V; _ -> [{Steps, Name} | V] end end,
+                   fun(V) ->
+                       case V of
+                         [{_, Name}] -> V;
+                         _ -> [{Steps, Name} | V]
+                       end
+                   end,
                    [{Steps, Name}],
                    Acc).
 
@@ -74,33 +79,6 @@ input() ->
 
 parse_input(WireInput) ->
   [ {D, binary_to_integer(I)} || <<D:1/binary, I/binary>> <- WireInput ].
-
-part1_tests() ->
-  [ {input1, part1(test_input1()) =:= 6}
-  , {input2, part1(test_input2()) =:= 159}
-  , {input3, part1(test_input3()) =:= 135}
-  ].
-
-part2_tests() ->
-  [ {input1, part2(test_input1()) =:= 40}
-  , {input2, part2(test_input2()) =:= 610}
-  , {input3, part2(test_input3()) =:= 410}
-  ].
-
-test_input1() ->
-  Wire1 = [ <<"R8">>, <<"U5">>, <<"L5">>, <<"D3">>],
-  Wire2 = [ <<"U7">>, <<"R6">>, <<"D4">>, <<"L4">>],
-  [parse_input(Wire1), parse_input(Wire2)].
-
-test_input2() ->
-  Wire1 = [<<"R75">>,<<"D30">>,<<"R83">>,<<"U83">>,<<"L12">>,<<"D49">>,<<"R71">>,<<"U7">>,<<"L72">>],
-  Wire2 = [<<"U62">>,<<"R66">>,<<"U55">>,<<"R34">>,<<"D71">>,<<"R55">>,<<"D58">>,<<"R83">>],
-    [parse_input(Wire1), parse_input(Wire2)].
-
-test_input3() ->
-  Wire1 = [<<"R98">>,<<"U47">>,<<"R26">>,<<"D63">>,<<"R33">>,<<"U87">>,<<"L62">>,<<"D20">>,<<"R33">>,<<"U53">>,<<"R51">>],
-  Wire2 = [<<"U98">>,<<"R91">>,<<"D20">>,<<"R16">>,<<"D67">>,<<"R40">>,<<"U7">>,<<"R15">>,<<"U6">>,<<"R7">>],
-  [parse_input(Wire1), parse_input(Wire2)].
 
 %%%_* Emacs ====================================================================
 %%% Local Variables:
